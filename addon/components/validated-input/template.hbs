@@ -7,16 +7,7 @@
 {{/if}}
 
 {{#if hasBlock}}
-  
-  {{#if (not-eq type "radioGroup")}}
-    {{yield (hash value=(or value (get model name))
-      controlClass=config.css.control
-      update=(action 'update')
-      setDirty=(action 'setDirty')
-      model=model
-      name=name)}}
-
-  {{else}}
+  {{#if (eq type "radioGroup") }}
     {{#each options as |option|}}
       <div class="{{config.css.radio}} {{if (eq selected-key option.key) config.css.selected}}">
         <label>
@@ -32,6 +23,28 @@
         </label>
       </div>
     {{/each}}
+
+  {{else if (eq type="genericGroup") }}
+    {{#each options as |option|}}
+      <div class="{{config.css.genericGroup}} {{if (eq selected-key option.key) config.css.selected}}">
+        {{yield (hash 
+          value=(or value (get model name))
+          option=option
+          name=name
+          update=(action "update")
+          focusOut=(action "setDirty")
+          disabled=disabled)
+        }}
+      </div>
+    {{/each}}
+
+  {{else}}
+    {{yield (hash value=(or value (get model name))
+      controlClass=config.css.control
+      update=(action 'update')
+      setDirty=(action 'setDirty')
+      model=model
+      name=name)}}
   {{/if}}
 
 {{else}}

@@ -116,6 +116,62 @@ test('it renders a radio group with block form and i18n support', function(asser
   this.container.registry.registrations['helper:t'] = null;
 });
 
+test('it renders a genericGroup (which works like radioGroup) with arbitrary components', function(assert) {
+
+  this.set('groupedObjects', 
+    [
+      { key: '1', label: 'Option 1', subObjects: [11, 12, 13]},
+      { key: '2', label: 'Option 2', subObjects: [21, 22, 23]},
+      { key: '3', label: 'Option 3', subObjects: [31, 32, 33]},
+    ]
+  );
+  //   [
+  //     { key: '1', label: 'Option 1', subObjects: [
+  //       { value: 10, label: 'Suboption 1-1' }, { value: 11, label: 'Suboption 1-2' }, { value: 12, label: 'Suboption 1-3' }
+  //     ]},
+  //     { key: '2', label: 'Option 2', subObjects: [
+  //       { value: 20, label: 'Suboption 2-1' }, { value: 21, label: 'Suboption 2-2' }, { value: 22, label: 'Suboption 2-3' }
+  //     ]},
+  //     { key: '3', label: 'Option 3', subObjects: [
+  //       { value: 30, label: 'Suboption 3-1' }, { value: 31, label: 'Suboption 3-2' }, { value: 32, label: 'Suboption 3-3' }
+  //     ]},
+  //   ]
+  // );
+
+  this.set('selectedObject', this.get('groupedObjects')[0]);
+
+  // this test uses a one-way-select to represent some arbitrary custom component
+  this.render(hbs`
+    {{#validated-form as |f| }}
+      {{#f.input type='genericGroup' label='Options' name='testOptions' options=groupedObjects as |fi|}}
+        <label>
+          {{#one-way-select value=selectedObject
+            options=fi.option.subObjects
+            update=fi.update 
+            class='one-way-select' as |option|
+          }}
+            {{option}} Months        
+          {{/one-way-select}}
+          Select label
+        </label>
+      {{/f.input}}
+    {{/validated-form}}
+  `);
+
+  console.log('options:');
+  console.log(this.get('groupedObjects'));
+  console.log('form:');
+  console.log(this.$('.form'));
+  console.log(this.$('.one-way-select'));
+
+  assert.equal(this.$('.control-label').text().trim(), 'Options');
+  assert.equal(this.$('.generic-group').length, 3);
+
+  assert.equal(this.$('.one-way-select').length, 3);
+  assert.equal(this.$('.one-way-select').eq(1)
+    .children('option').eq(2).text().trim(), '23 Months');
+});
+
 test('it renders a radio group with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
   this.set('buttonGroupData', {
     options: [

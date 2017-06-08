@@ -11,6 +11,7 @@ module.exports = function(environment) {
         submit: 'label.save'
       },
       css: {
+        form: 'form',
         group: 'form-group',
         radio: 'radio',
         control: 'form-control',
@@ -20,7 +21,8 @@ module.exports = function(environment) {
         checkbox: 'checkbox',
         button: 'btn btn-default',
         submit: 'btn btn-primary',
-        selected: 'selected'
+        selected: 'selected',
+        genericGroup: 'generic-group'
       }
     },
     EmberENV: {
