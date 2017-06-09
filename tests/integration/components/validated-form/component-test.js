@@ -120,23 +120,17 @@ test('it renders a genericGroup (which works like radioGroup) with arbitrary com
 
   this.set('groupedObjects', 
     [
-      { key: '1', label: 'Option 1', subObjects: [11, 12, 13]},
-      { key: '2', label: 'Option 2', subObjects: [21, 22, 23]},
-      { key: '3', label: 'Option 3', subObjects: [31, 32, 33]},
+      { key: 1, label: 'Option 1', subObjects: [
+        { value: 10, label: 'Suboption 1-1' }, { value: 11, label: 'Suboption 1-2' }, { value: 12, label: 'Suboption 1-3' }
+      ]},
+      { key: 2, label: 'Option 2', subObjects: [
+        { value: 20, label: 'Suboption 2-1' }, { value: 21, label: 'Suboption 2-2' }, { value: 22, label: 'Suboption 2-3' }
+      ]},
+      { key: 3, label: 'Option 3', subObjects: [
+        { value: 30, label: 'Suboption 3-1' }, { value: 31, label: 'Suboption 3-2' }, { value: 32, label: 'Suboption 3-3' }
+      ]},
     ]
   );
-  //   [
-  //     { key: '1', label: 'Option 1', subObjects: [
-  //       { value: 10, label: 'Suboption 1-1' }, { value: 11, label: 'Suboption 1-2' }, { value: 12, label: 'Suboption 1-3' }
-  //     ]},
-  //     { key: '2', label: 'Option 2', subObjects: [
-  //       { value: 20, label: 'Suboption 2-1' }, { value: 21, label: 'Suboption 2-2' }, { value: 22, label: 'Suboption 2-3' }
-  //     ]},
-  //     { key: '3', label: 'Option 3', subObjects: [
-  //       { value: 30, label: 'Suboption 3-1' }, { value: 31, label: 'Suboption 3-2' }, { value: 32, label: 'Suboption 3-3' }
-  //     ]},
-  //   ]
-  // );
 
   this.set('selectedObject', this.get('groupedObjects')[0]);
 
@@ -147,10 +141,11 @@ test('it renders a genericGroup (which works like radioGroup) with arbitrary com
         <label>
           {{#one-way-select value=selectedObject
             options=fi.option.subObjects
+            optionValuePath='value'
             update=fi.update 
             class='one-way-select' as |option|
           }}
-            {{option}} Months        
+            {{option.label}}        
           {{/one-way-select}}
           Select label
         </label>
@@ -169,7 +164,7 @@ test('it renders a genericGroup (which works like radioGroup) with arbitrary com
 
   assert.equal(this.$('.one-way-select').length, 3);
   assert.equal(this.$('.one-way-select').eq(1)
-    .children('option').eq(2).text().trim(), '23 Months');
+    .children('option').eq(2).text().trim(), 'Suboption 2-3');
 });
 
 test('it renders a radio group with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
@@ -194,6 +189,57 @@ test('it renders a radio group with a selected-key passed in, where the option w
   assert.equal(this.$('.radio').eq(0).hasClass('selected'), false);
   assert.equal(this.$('.radio').eq(1).hasClass('selected'), true);
   assert.equal(this.$('.radio').eq(2).hasClass('selected'), false);
+});
+
+test('it renders a genericGroup with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
+
+  this.set('groupedObjects', 
+    [
+      { key: 1, label: 'Option 1', subObjects: [
+        { value: 10, label: 'Suboption 1-1' }, { value: 11, label: 'Suboption 1-2' }, { value: 12, label: 'Suboption 1-3' }
+      ]},
+      { key: 2, label: 'Option 2', subObjects: [
+        { value: 20, label: 'Suboption 2-1' }, { value: 21, label: 'Suboption 2-2' }, { value: 22, label: 'Suboption 2-3' }
+      ]},
+      { key: 3, label: 'Option 3', subObjects: [
+        { value: 30, label: 'Suboption 3-1' }, { value: 31, label: 'Suboption 3-2' }, { value: 32, label: 'Suboption 3-3' }
+      ]},
+    ]
+  );
+
+  this.set('selectedObject', this.get('groupedObjects')[1]);
+
+  // this test uses a one-way-select to represent some arbitrary custom component
+  this.render(hbs`
+    {{#validated-form as |f| }}
+      {{#f.input type='genericGroup' label='Options' name='testOptions' options=groupedObjects selected-key=selectedObject.key as |fi|}}
+        <label>
+          {{#one-way-select value=selectedObject
+            options=fi.option.subObjects
+            optionValuePath='value'
+            update=fi.update 
+            class='one-way-select' as |option|
+          }}
+            {{option.label}}        
+          {{/one-way-select}}
+          Select label
+        </label>
+      {{/f.input}}
+    {{/validated-form}}
+  `);
+
+  this.on('update', function(){
+    assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), false);
+    assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), true);
+  });
+
+  assert.equal(this.$('.generic-group').length, 3);
+  assert.equal(this.$('.generic-group').eq(0).hasClass('selected'), false);
+  assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), true);
+  assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), false);
+
+  this.$('.generic-group').eq(2).children('.one-way-select').prop('selectedIndex', 2);
+
 });
 
 test('it renders submit buttons', function(assert) {
