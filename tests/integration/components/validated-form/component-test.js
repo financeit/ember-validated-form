@@ -116,6 +116,65 @@ test('it renders a radio group with block form and i18n support', function(asser
   this.container.registry.registrations['helper:t'] = null;
 });
 
+test('it renders a radio group with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
+  this.set('buttonGroupData', {
+    options: [
+      { key: '1', label: 'Option 1'},
+      { key: '2', label: 'Option 2'},
+      { key: '3', label: 'Option 3'},
+    ],
+    selected: '2'
+  });
+
+  this.render(hbs`
+    {{#validated-form as |f|}}
+      {{#f.input type='radioGroup' label='Options' name='testOptions' options=buttonGroupData.options selected-key=buttonGroupData.selected as |option|}}
+        {{option.label}} - block form
+      {{/f.input}}
+    {{/validated-form}}
+  `);
+
+  assert.equal(this.$('.radio').length, 3);
+  assert.equal(this.$('.radio').eq(0).hasClass('selected'), false);
+  assert.equal(this.$('.radio').eq(1).hasClass('selected'), true);
+  assert.equal(this.$('.radio').eq(2).hasClass('selected'), false);
+});
+
+test('it renders a radio group and correctly updates the selection when a radio group is selected', function(assert) {
+
+  assert.expect(6);
+  this.set('buttonGroupData', {
+    options: [
+      { key: '1', label: 'Option 1'},
+      { key: '2', label: 'Option 2'},
+      { key: '3', label: 'Option 3'},
+    ],
+    selected: '2'
+  });
+  this.set('model', 'Model value');
+
+  this.on('update', function(params) {
+    this.set('buttonGroupData.selected', params);
+    assert.equal(this.$('.radio').eq(2).hasClass('selected'), true);
+    assert.equal(this.$('.radio').eq(1).hasClass('selected'), false);
+  });
+
+  this.render(hbs`
+    {{#validated-form as |f|}}
+      {{#f.input type='radioGroup' label='Options' name='testOptions' options=buttonGroupData.options selected-key=buttonGroupData.selected on-update=(action 'update') as |option|}}
+        {{option.label}} - block form
+      {{/f.input}}
+    {{/validated-form}}
+  `);
+
+  assert.equal(this.$('.radio').length, 3);
+  assert.equal(this.$('.radio').eq(0).hasClass('selected'), false);
+  assert.equal(this.$('.radio').eq(1).hasClass('selected'), true);
+  assert.equal(this.$('.radio').eq(2).hasClass('selected'), false);
+
+  this.$('.radio').eq(2).find('input[type=radio]').click();
+});
+
 test('it renders a genericGroup (which works like radioGroup) with arbitrary components', function(assert) {
 
   this.set('groupedObjects', 
@@ -153,11 +212,11 @@ test('it renders a genericGroup (which works like radioGroup) with arbitrary com
     {{/validated-form}}
   `);
 
-  console.log('options:');
-  console.log(this.get('groupedObjects'));
-  console.log('form:');
-  console.log(this.$('.form'));
-  console.log(this.$('.one-way-select'));
+  // console.log('options:');
+  // console.log(this.get('groupedObjects'));
+  // console.log('form:');
+  // console.log(this.$('.form'));
+  // console.log(this.$('.one-way-select'));
 
   assert.equal(this.$('.control-label').text().trim(), 'Options');
   assert.equal(this.$('.generic-group').length, 3);
@@ -167,32 +226,64 @@ test('it renders a genericGroup (which works like radioGroup) with arbitrary com
     .children('option').eq(2).text().trim(), 'Suboption 2-3');
 });
 
-test('it renders a radio group with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
-  this.set('buttonGroupData', {
-    options: [
-      { key: '1', label: 'Option 1'},
-      { key: '2', label: 'Option 2'},
-      { key: '3', label: 'Option 3'},
-    ],
-    selected: '2'
-  });
+test('it renders a genericGroup with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
 
+  assert.expect(4);
+  this.set('groupedObjects', 
+    [
+      { key: 0, label: 'Option 1', subObjects: [
+        { value: 10, label: 'Suboption 1-1' }, { value: 11, label: 'Suboption 1-2' }, { value: 12, label: 'Suboption 1-3' }
+      ]},
+      { key: 1, label: 'Option 2', subObjects: [
+        { value: 20, label: 'Suboption 2-1' }, { value: 21, label: 'Suboption 2-2' }, { value: 22, label: 'Suboption 2-3' }
+      ]},
+      { key: 2, label: 'Option 3', subObjects: [
+        { value: 30, label: 'Suboption 3-1' }, { value: 31, label: 'Suboption 3-2' }, { value: 32, label: 'Suboption 3-3' }
+      ]},
+    ]
+  );
+
+  this.set('selectedObject', this.get('groupedObjects')[1]);
+  
+  // this.on('update', function(params){
+  //   // console.log('update');
+  //   // console.log(params);
+  // });
+  // this.on('dirty', function(params){
+  //   // console.log('dirty');
+  //   // console.log(params);
+  // });
+
+  // this test uses a one-way-select to represent some arbitrary custom component
   this.render(hbs`
-    {{#validated-form as |f|}}
-      {{#f.input type='radioGroup' label='Options' name='testOptions' options=buttonGroupData.options selected-key=buttonGroupData.selected as |option|}}
-        {{option.label}} - block form
+    {{#validated-form as |f| }}
+      {{#f.input type='genericGroup' label='Options' name='testOptions' options=groupedObjects selected-obj=selectedObject as |fi|}}
+        <label>
+          {{#one-way-select value=selectedObject
+            options=fi.option.subObjects
+            optionValuePath='value'
+            update=fi.update 
+            dirty=fi.setDirty
+            class='one-way-select' as |option|
+          }}
+            {{option.label}}        
+          {{/one-way-select}}
+          Select label
+        </label>
       {{/f.input}}
     {{/validated-form}}
   `);
 
-  assert.equal(this.$('.radio').length, 3);
-  assert.equal(this.$('.radio').eq(0).hasClass('selected'), false);
-  assert.equal(this.$('.radio').eq(1).hasClass('selected'), true);
-  assert.equal(this.$('.radio').eq(2).hasClass('selected'), false);
+  // console.log(this.$('.generic-group'));
+  assert.equal(this.$('.generic-group').length, 3);
+  assert.equal(this.$('.generic-group').eq(0).hasClass('selected'), false);
+  assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), true);
+  assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), false);
 });
 
-test('it renders a genericGroup with a selected-key passed in, where the option with that key is given the selected class on render', function(assert) {
+test('it renders a genericGroup and correctly updates the selected item when a genericGroup is selected', function(assert) {
 
+  assert.expect(6);
   this.set('groupedObjects', 
     [
       { key: 1, label: 'Option 1', subObjects: [
@@ -208,16 +299,30 @@ test('it renders a genericGroup with a selected-key passed in, where the option 
   );
 
   this.set('selectedObject', this.get('groupedObjects')[1]);
+  
+  this.on('update', function(index){
+    // console.log('update');
+    // console.log(index);
+    this.set('selectedObject', this.get('groupedObjects')[index]);
+    assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), false);
+    assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), true);
+  });
+
+  // this.on('dirty', function(params){
+  //   console.log('dirty');
+  //   console.log(params);
+  // });
 
   // this test uses a one-way-select to represent some arbitrary custom component
   this.render(hbs`
     {{#validated-form as |f| }}
-      {{#f.input type='genericGroup' label='Options' name='testOptions' options=groupedObjects selected-key=selectedObject.key as |fi|}}
+      {{#f.input type='genericGroup' label='Options' name='testOptions' options=groupedObjects selected-obj=selectedObject on-update=(action 'update') as |fi|}}
         <label>
           {{#one-way-select value=selectedObject
             options=fi.option.subObjects
             optionValuePath='value'
             update=fi.update 
+            dirty=fi.setDirty
             class='one-way-select' as |option|
           }}
             {{option.label}}        
@@ -228,17 +333,15 @@ test('it renders a genericGroup with a selected-key passed in, where the option 
     {{/validated-form}}
   `);
 
-  this.on('update', function(){
-    assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), false);
-    assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), true);
-  });
-
+  // console.log(this.$('.generic-group'));
   assert.equal(this.$('.generic-group').length, 3);
   assert.equal(this.$('.generic-group').eq(0).hasClass('selected'), false);
   assert.equal(this.$('.generic-group').eq(1).hasClass('selected'), true);
   assert.equal(this.$('.generic-group').eq(2).hasClass('selected'), false);
 
-  this.$('.generic-group').eq(2).children('.one-way-select').prop('selectedIndex', 2);
+  // console.log(this.$('.generic-group').eq(2).find('.one-way-select'));
+  this.$('.generic-group').eq(2).find('.one-way-select').prop('selectedIndex', 2).change();
+  // this.$('.generic-group').eq(2).children('.one-way-select option:eq(2)').click();
 
 });
 

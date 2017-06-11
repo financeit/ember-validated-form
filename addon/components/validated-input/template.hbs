@@ -25,14 +25,14 @@
     {{/each}}
 
   {{else if (eq type="genericGroup") }}
-    {{#each options as |option|}}
-      <div class="{{config.css.genericGroup}} {{if (eq selected-key option.key) config.css.selected}}">
+    {{#each options as |option index|}}
+      <div class="{{config.css.genericGroup}} {{if (eq selected-obj option) config.css.selected}}">
         {{yield (hash 
           value=(or value (get model name))
           option=option
           name=name
-          update=(action "update")
-          focusOut=(action "setDirty")
+          update=(action "update" index)
+          setDirty=(action "setDirty")
           disabled=disabled)
         }}
       </div>
